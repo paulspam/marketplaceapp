@@ -1,5 +1,8 @@
 package com.intellias.intellistart.marketplaceapp.model;
 
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -21,10 +24,11 @@ public class Product {
     private String name;
 
     @NotNull
-    @Pattern(regexp = "^(-?)(0|([1-9][0-9]*))(\\\\.[0-9]+)?$")
+//    @Pattern(regexp = "^(-?)(0|([1-9][0-9]*))(\\\\.[0-9]+)?$")
     private Double price;
 
-    @ManyToOne
-    private User user;
+    @JsonIgnore
+    @ManyToMany(mappedBy = "products")
+    private List<User> user;
 
 }
