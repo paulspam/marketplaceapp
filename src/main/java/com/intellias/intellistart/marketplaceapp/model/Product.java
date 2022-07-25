@@ -1,14 +1,19 @@
 package com.intellias.intellistart.marketplaceapp.model;
 
+import java.math.BigDecimal;
 import java.util.List;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.ManyToMany;
+import javax.persistence.Table;
+import javax.validation.constraints.DecimalMin;
+import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
-
-import javax.persistence.*;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
 
 @Getter
 @Setter
@@ -24,11 +29,10 @@ public class Product {
     private String name;
 
     @NotNull
-//    @Pattern(regexp = "^(-?)(0|([1-9][0-9]*))(\\\\.[0-9]+)?$")
-    private Double price;
+    @DecimalMin("0.0")
+    private BigDecimal price;
 
     @JsonIgnore
     @ManyToMany(mappedBy = "products")
     private List<User> user;
-
 }

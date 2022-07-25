@@ -1,22 +1,25 @@
 package com.intellias.intellistart.marketplaceapp.controller;
 
+import java.util.List;
+
 import com.intellias.intellistart.marketplaceapp.exception.InsufficientFundsException;
 import com.intellias.intellistart.marketplaceapp.exception.RecordNotFoundException;
 import com.intellias.intellistart.marketplaceapp.model.Product;
 import com.intellias.intellistart.marketplaceapp.model.User;
 import com.intellias.intellistart.marketplaceapp.service.UserServiceImpl;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Map;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping(value = "/users")
-//@RequestMapping(value = "/users", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-//@RequestMapping(value = "/users", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_JSON_UTF8_VALUE})
 public class UserController {
 
     private final UserServiceImpl userService;
@@ -32,10 +35,10 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> findById(@PathVariable long id) {
+    public ResponseEntity<User> findById(@PathVariable long id) throws RecordNotFoundException {
         User user = userService.findUserById(id);
         if (user == null) {
-            return new ResponseEntity("No user with userId = " + id, HttpStatus.BAD_REQUEST);
+            return new ResponseEntity("No user with id = " + id, HttpStatus.BAD_REQUEST);
         } else return ResponseEntity.ok(user);
     }
 
@@ -45,12 +48,10 @@ public class UserController {
         return ResponseEntity.ok(products);
     }
 
-//    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-//    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     @PostMapping()
     public ResponseEntity<User> saveNewUser(@RequestBody User user) {
         if ((user.getId() != null) && (user.getId() !=0)) {
-            return new ResponseEntity("Redundant parameter: userId must be null", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity("Redundant parameter: id must be null", HttpStatus.BAD_REQUEST);
         }
         User newUser = userService.saveUser(user);
         return ResponseEntity.ok(newUser);
@@ -59,20 +60,20 @@ public class UserController {
     @PutMapping()
     public ResponseEntity<User> updateUser(@RequestBody User user) {
         if ((user.getId() == null) || (user.getId() ==0)) {
-            return new ResponseEntity("Missing parameter: userId must be not null", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity("Missing parameter: id must be not null", HttpStatus.BAD_REQUEST);
         }
         User newUser = userService.saveUser(user);
         return ResponseEntity.ok(newUser);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteUser(@PathVariable long id) {
+    public ResponseEntity<String> deleteUser(@PathVariable long id) throws RecordNotFoundException {
         User user = userService.findUserById(id);
         if (user == null) {
-            return new ResponseEntity("No user with userId = " + id, HttpStatus.BAD_REQUEST);
+            return new ResponseEntity("No user with id = " + id, HttpStatus.BAD_REQUEST);
         } else {
             userService.deleteById(id);
-            return ResponseEntity.ok("User with ID = " + id + " was deleted");
+            return ResponseEntity.ok("User with id = " + id + " was deleted");
         }
     }
 

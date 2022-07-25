@@ -1,11 +1,11 @@
 package com.intellias.intellistart.marketplaceapp.service;
 
+import java.util.List;
+import java.util.Set;
+
 import com.intellias.intellistart.marketplaceapp.exception.RecordNotFoundException;
 import com.intellias.intellistart.marketplaceapp.model.Product;
 import com.intellias.intellistart.marketplaceapp.model.User;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 public interface ProductService {
 
@@ -15,5 +15,7 @@ public interface ProductService {
 
     Product save(Product product);
 
-    List<Product> findProductsByUser(Long userId) throws RecordNotFoundException;
+    void deleteById(Long id);
+
+    Set<User> findUsersByProduct(Long productId) throws RecordNotFoundException;
 }

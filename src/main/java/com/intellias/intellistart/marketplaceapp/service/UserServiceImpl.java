@@ -1,5 +1,7 @@
 package com.intellias.intellistart.marketplaceapp.service;
 
+import java.util.List;
+
 import com.intellias.intellistart.marketplaceapp.exception.InsufficientFundsException;
 import com.intellias.intellistart.marketplaceapp.exception.RecordNotFoundException;
 import com.intellias.intellistart.marketplaceapp.model.Product;
@@ -7,11 +9,6 @@ import com.intellias.intellistart.marketplaceapp.model.User;
 import com.intellias.intellistart.marketplaceapp.repository.ProductRepository;
 import com.intellias.intellistart.marketplaceapp.repository.UserRepository;
 import org.springframework.stereotype.Service;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import javax.persistence.criteria.CriteriaBuilder;
 
 @Service
 public class UserServiceImpl implements UserService{
@@ -25,8 +22,12 @@ public class UserServiceImpl implements UserService{
         this.productRepository = productRepository;
     }
 
-    public User findUserById(Long id) {
-        return userRepository.findById(id).orElse(null);
+    public User findUserById(Long id) throws RecordNotFoundException {
+        User user = userRepository.findUserById(id);
+        if (user == null) {
+            throw new RecordNotFoundException("User with id = "+ id + " not found");
+        }
+        return user;
     }
 
     public List<User> findAll() {
@@ -41,42 +42,32 @@ public class UserServiceImpl implements UserService{
         userRepository.deleteById(id);
     }
 
-    public List<User> findAllByProducts(Product product) {
-        return null;
-    };
-
     public List<Product> findAllProductByUser(Long userId) throws RecordNotFoundException {
-        User user = userRepository.getReferenceById(userId);
+        User user = userRepository.findUserById(userId);
         if (user == null) {
-            throw new RecordNotFoundException(String.format("User with id = "+ userId + "not found", userId));
+            throw new RecordNotFoundException("User with id = "+ userId + " not found");
         }
         return user.getProducts();
     }
 
     public User buy (Long userId, Long productId) throws RecordNotFoundException, InsufficientFundsException {
-        User user = userRepository.getReferenceById(userId);
-        Product product = productRepository.getReferenceById(productId);
+        User user = userRepository.findUserById(userId);
+        Product product = productRepository.findProductById(productId);
         if (user == null) {
-            throw new RecordNotFoundException(String.format("User with id = "+ userId + "not found", userId));
+            throw new RecordNotFoundException("User with id = "+ userId + " not found");
         }
         if (product == null) {
             throw new RecordNotFoundException("Product with id = " + productId + " not found");
         }
-        if (user.getAmount() < product.getPrice()) {
+        if (user.getAmount().compareTo(product.getPrice()) < 0) {
             throw new InsufficientFundsException("User with id = " + userId +
                 " insufficient funds for buying product with id = " + productId);
         } else {
-            user.setAmount(user.getAmount() - product.getPrice());
+            user.setAmount(user.getAmount().subtract(product.getPrice()));
             List<Product> newProducts = user.getProducts();
             newProducts.add(product);
-//            if (newProducts.containsKey(product)) {
-//                Integer quantity = newProducts.get(product);
-//                newProducts.put(product, ++quantity);
-//                user.setProducts(newProducts);
-//            } else {
-//                newProducts.put(product,1);
-//                user.setProducts(newProducts);
-//            }
+            user.setProducts(newProducts);
+            userRepository.save(user);
         }
         return user;
     }

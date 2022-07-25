@@ -4,6 +4,8 @@ import java.nio.file.AccessDeniedException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.validation.ConstraintViolationException;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -52,7 +54,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
         log.info(ex.getClass().getName() + " handled");
 
-        List<String> errors = new ArrayList<String>();
+        List<String> errors = new ArrayList<>();
         for (FieldError error : ex.getBindingResult().getFieldErrors()) {
             errors.add(error.getField() + ": " + error.getDefaultMessage());
         }
@@ -77,7 +79,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     protected ResponseEntity<Object> handleBindException(BindException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
         log.info(ex.getClass().getName() + " handled");
 
-        List<String> errors = new ArrayList<String>();
+        List<String> errors = new ArrayList<>();
         for (FieldError error : ex.getBindingResult().getFieldErrors()) {
             errors.add(error.getField() + ": " + error.getDefaultMessage());
         }
@@ -137,7 +139,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         ApiError apiError = new ApiError(HttpStatus.UNSUPPORTED_MEDIA_TYPE,
                 ex.getLocalizedMessage(), builder.substring(0, builder.length() - 2));
 
-        return new ResponseEntity<Object>(apiError, new HttpHeaders(), apiError.getStatus());
+        return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
     }
 
     // Other exceptions
@@ -149,6 +151,20 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
 
         ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST, ex.getLocalizedMessage(), error);
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    protected ResponseEntity<Object> handleConstraintViolationException(
+        ConstraintViolationException ex,
+        WebRequest request) {
+
+        log.info(ex.getClass().getName() + " handled");
+
+        String error = ex.getMessage();
+        ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST,
+            ex.getLocalizedMessage(), error);
+
+        return handleExceptionInternal(ex, apiError, new HttpHeaders(), apiError.getStatus(), request);
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
@@ -186,9 +202,21 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
 
         log.info(ex.getClass().getName() + " handled");
 
-//        String error = ex.getCause().toString();
         ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST,
                 ex.getLocalizedMessage(), ex.getLocalizedMessage());
+
+        return handleExceptionInternal(ex, apiError, new HttpHeaders(), apiError.getStatus(), request);
+    }
+
+    @ExceptionHandler(InsufficientFundsException.class)
+    protected ResponseEntity<Object> handleInsufficientFundsException(
+        InsufficientFundsException ex,
+        WebRequest request) {
+
+        log.info(ex.getClass().getName() + " handled");
+
+        ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST,
+            ex.getLocalizedMessage(), ex.getLocalizedMessage());
 
         return handleExceptionInternal(ex, apiError, new HttpHeaders(), apiError.getStatus(), request);
     }

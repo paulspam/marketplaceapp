@@ -1,15 +1,22 @@
 package com.intellias.intellistart.marketplaceapp.controller;
 
+import java.util.List;
+import java.util.Set;
+
 import com.intellias.intellistart.marketplaceapp.exception.RecordNotFoundException;
 import com.intellias.intellistart.marketplaceapp.model.Product;
 import com.intellias.intellistart.marketplaceapp.model.User;
 import com.intellias.intellistart.marketplaceapp.service.ProductServiceImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.ArrayList;
-import java.util.List;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/products")
@@ -36,20 +43,20 @@ public class ProductController {
     }
 
     @GetMapping("/{id}/users")
-    public ResponseEntity< List<Product>> findProductsByUser(@PathVariable long id) {
-        List<Product> products;
+    public ResponseEntity< Set<User>> findProductsByUser(@PathVariable long id) {
+        Set<User> userSet;
         try {
-            products = productService.findProductsByUser(id);
+            userSet = productService.findUsersByProduct(id);
         } catch (RecordNotFoundException e) {
             return new ResponseEntity("No product with id = " + id, HttpStatus.BAD_REQUEST);
         }
-        return ResponseEntity.ok(products);
+        return ResponseEntity.ok(userSet);
     }
 
     @PostMapping()
     public ResponseEntity<Product> save(@RequestBody Product product) {
         if ((product.getId() != null) && (product.getId() !=0)) {
-            return new ResponseEntity("Redundant parameter: userId must be null", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity("Redundant parameter: id must be null", HttpStatus.BAD_REQUEST);
         }
         Product newProduct = productService.save(product);
         return ResponseEntity.ok(newProduct);
@@ -58,7 +65,7 @@ public class ProductController {
     @PutMapping()
     public ResponseEntity<Product> update(@RequestBody Product product) {
         if ((product.getId() == null) || (product.getId() ==0)) {
-            return new ResponseEntity("Missing parameter: userId must be not null", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity("Missing parameter: id must be not null", HttpStatus.BAD_REQUEST);
         }
         Product newProduct = productService.save(product);
         return ResponseEntity.ok(newProduct);
@@ -68,10 +75,10 @@ public class ProductController {
     public ResponseEntity<String> deleteProduct(@PathVariable long id) {
         Product product = productService.findById(id);
         if (product == null) {
-            return new ResponseEntity("No user with userId = " + id, HttpStatus.BAD_REQUEST);
+            return new ResponseEntity("No product with userId = " + id, HttpStatus.BAD_REQUEST);
         } else {
             productService.deleteById(id);
-            return ResponseEntity.ok("User with ID = " + id + " was deleted");
+            return ResponseEntity.ok("Product with ID = " + id + " was deleted");
         }
     }
 }

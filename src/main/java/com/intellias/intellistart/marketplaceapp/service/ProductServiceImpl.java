@@ -1,26 +1,23 @@
 package com.intellias.intellistart.marketplaceapp.service;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import com.intellias.intellistart.marketplaceapp.exception.RecordNotFoundException;
 import com.intellias.intellistart.marketplaceapp.model.Product;
 import com.intellias.intellistart.marketplaceapp.model.User;
 import com.intellias.intellistart.marketplaceapp.repository.ProductRepository;
-import com.intellias.intellistart.marketplaceapp.repository.UserRepository;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class ProductServiceImpl implements ProductService{
 
     private final ProductRepository productRepository;
 
-    private final UserRepository userRepository;
-
-    public ProductServiceImpl(ProductRepository productRepository, UserRepository userRepository) {
+    public ProductServiceImpl(ProductRepository productRepository) {
         this.productRepository = productRepository;
-        this.userRepository = userRepository;
     }
-
 
     @Override
     public List<Product> findAll() {
@@ -37,16 +34,21 @@ public class ProductServiceImpl implements ProductService{
         return productRepository.save(product);
     }
 
+
+    @Override
     public void deleteById(Long id) {
         productRepository.deleteById(id);
     }
 
     @Override
-    public List<Product> findProductsByUser(Long userId) throws RecordNotFoundException {
-        User user = userRepository.getReferenceById(userId);
-        if (user == null) {
-            throw new RecordNotFoundException(String.format("User with id = "+ userId + "not found", userId));
+    public Set<User> findUsersByProduct(Long productId) throws RecordNotFoundException {
+        Product product = productRepository.findProductById(productId);
+        if (product == null) {
+            throw new RecordNotFoundException("Product with id = "+ productId + "not found");
         }
-        return productRepository.findProductsByUser(user);
+        List<User> userList = product.getUser();
+        Set<User> userSet = new HashSet<>();
+        userSet.addAll(userList);
+        return userSet;
     }
 }
